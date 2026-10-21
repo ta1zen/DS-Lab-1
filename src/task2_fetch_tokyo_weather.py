@@ -26,7 +26,6 @@ def fetch_weather_data() -> Dict[str, any]:
     response.raise_for_status()
     daily = response.json()["daily"]
 
-    # The first entry corresponds to the nearest forecast day
     return {
         "date": daily["time"][0],
         "max_temperature": daily["temperature_2m_max"][0]

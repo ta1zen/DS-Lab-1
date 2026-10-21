@@ -56,11 +56,9 @@ def extract_first_sentence(soup: BeautifulSoup) -> str:
         str: The first sentence of the first paragraph.
     """
     for paragraph in soup.find_all('p'):
-        # Remove citation markers like [1]
         for sup in paragraph.find_all('sup'):
             sup.decompose()
         text = paragraph.get_text().strip()
-        # Skip empty paragraphs (Wikipedia often has an empty <p> first)
         if not text:
             continue
         match = re.match(r'(.+?[.!?])(?:\s|$)', text, re.DOTALL)
