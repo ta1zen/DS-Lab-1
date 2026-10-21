@@ -1,3 +1,4 @@
+import re
 import requests
 from bs4 import BeautifulSoup
 from typing import Dict
@@ -22,7 +23,10 @@ def fetch_wikipedia_page(url: str) -> str:
         requests.HTTPError: If the HTTP request returned an unsuccessful status code.
         requests.RequestException: If there was a network error.
     """
-    pass
+    headers = {"User-Agent": "Mozilla/5.0 (compatible; DS-Lab-1 scraper)"}
+    response = requests.get(url, headers=headers, timeout=10)
+    response.raise_for_status()
+    return response.text
 
 
 def extract_title(soup: BeautifulSoup) -> str:
@@ -35,7 +39,10 @@ def extract_title(soup: BeautifulSoup) -> str:
     Returns:
         str: The title of the page.
     """
-    pass
+    heading = soup.find('h1', id='firstHeading')
+    if heading is None:
+        return ""
+    return heading.get_text(strip=True)
 
 
 def extract_first_sentence(soup: BeautifulSoup) -> str:
@@ -48,7 +55,17 @@ def extract_first_sentence(soup: BeautifulSoup) -> str:
     Returns:
         str: The first sentence of the first paragraph.
     """
-    pass
+    for paragraph in soup.find_all('p'):
+        # Remove citation markers like [1]
+        for sup in paragraph.find_all('sup'):
+            sup.decompose()
+        text = paragraph.get_text().strip()
+        # Skip empty paragraphs (Wikipedia often has an empty <p> first)
+        if not text:
+            continue
+        match = re.match(r'(.+?[.!?])(?:\s|$)', text, re.DOTALL)
+        return match.group(1).strip() if match else text
+    return ""
 
 
 if __name__ == "__main__":
